@@ -325,6 +325,7 @@ public class KafkaTopicClientImpl implements KafkaTopicClient {
         }
       }
       if (!internalTopics.isEmpty()) {
+        Collections.sort(internalTopics); // prevents flaky tests
         deleteTopics(internalTopics);
       }
     } catch (final Exception e) {
@@ -370,10 +371,13 @@ public class KafkaTopicClientImpl implements KafkaTopicClient {
     return KafkaClusterUtil.getConfig(adminClient.get());
   }
 
+  @SuppressWarnings("checkstyle:BooleanExpressionComplexity")
   private static boolean isInternalTopic(final String topicName, final String applicationId) {
     return topicName.startsWith(applicationId + "-")
         && (topicName.endsWith(KsqlConstants.STREAMS_CHANGELOG_TOPIC_SUFFIX)
-        || topicName.endsWith(KsqlConstants.STREAMS_REPARTITION_TOPIC_SUFFIX));
+        || topicName.endsWith(KsqlConstants.STREAMS_REPARTITION_TOPIC_SUFFIX))
+        || topicName.matches(KsqlConstants.STREAMS_JOIN_REGISTRATION_TOPIC_PATTERN)
+        || topicName.matches(KsqlConstants.STREAMS_JOIN_RESPONSE_TOPIC_PATTERN);
   }
 
   private void validateTopicProperties(
